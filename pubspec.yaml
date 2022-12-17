@@ -10,17 +10,27 @@ environment:
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.16.0
+
 dependencies:
   cryptography: ^2.0.5
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
       ref: 004d6f82dff7389b561e5078b4649adcd2d9c10f
+  bip39:
+    git:
+      url: https://github.com/cypherstack/stack-bip39.git
+      ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
   pointycastle: ^3.6.2
   convert: ^3.0.2
   bip32: ^2.0.0
   hex: ^0.2.0
-  bip39: ^1.0.6
   dart_bs58: ^1.0.1
   dart_bs58check: ^3.0.2
   http: ^0.13.5
+
+dependency_overrides:
+  bip39:
+    git:
+      url: https://github.com/cypherstack/stack-bip39.git
+      ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
