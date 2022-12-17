@@ -38,7 +38,8 @@ class PaymentAddress {
   }
 
   Future<ECPoint> get_sG() async {
-    return (curveParams.G * (await getSecretPoint())!)!;
+    final s = await getSecretPoint();
+    return _get_sG(s!);
   }
 
   SecretPoint getSharedSecret() {

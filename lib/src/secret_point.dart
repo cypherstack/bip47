@@ -4,53 +4,35 @@ import 'package:bip47/src/util.dart';
 import 'package:convert/convert.dart';
 import 'package:pointycastle/ecc/api.dart';
 
+// wrapper for EC key pair/point data
 class SecretPoint {
-  ECPrivateKey? _privKey;
-  ECPublicKey? _pubKey;
+  late final ECPrivateKey privKey;
+  late final ECPublicKey pubKey;
 
-  final parameters = ECDomainParameters("secp256k1");
+  final _parameters = ECDomainParameters("secp256k1");
+
+  // constructor
   SecretPoint(Uint8List priv, Uint8List pub) {
-    _privKey = _loadPrivateKey(priv);
-    _pubKey = _loadPublicKey(pub);
+    privKey = _loadPrivateKey(priv);
+    pubKey = _loadPublicKey(pub);
   }
 
-  ECPrivateKey get privKey => _privKey!;
-  ECPublicKey get pubKey => _pubKey!;
-
-  set privKey(ECPrivateKey value) {
-    _privKey = value;
-  }
-
-  set pubKey(ECPublicKey value) {
-    _pubKey = value;
-  }
-
+  /// grab the ECDH secret for this point
   Uint8List ecdhSecret() {
     final result =
         (ECDHBasicAgreement()..init(privKey)).calculateAgreement(pubKey);
-    return Uint8List.fromList(hex.decode(_toHex(result)));
+    return Uint8List.fromList(hex.decode(Util.bigIntoToHex(result)));
   }
 
-  // bool _equals(SecretKey other) {
-  //   return
-  // }
-
+  /// generate an EC pub key from [data]
   ECPublicKey _loadPublicKey(Uint8List data) {
-    final ecPoint = parameters.curve.decodePoint(data);
-    return ECPublicKey(ecPoint, parameters);
+    final ecPoint = _parameters.curve.decodePoint(data);
+    return ECPublicKey(ecPoint, _parameters);
   }
 
+  /// generate an EC private key from [data]
   ECPrivateKey _loadPrivateKey(Uint8List data) {
     final num = Util.bytesToInt(data);
-    return ECPrivateKey(num, parameters);
-  }
-
-  String _toHex(BigInt num) {
-    String hex = num.toRadixString(16);
-    if (hex.length % 2 == 0) {
-      return hex;
-    } else {
-      return "0$hex";
-    }
+    return ECPrivateKey(num, _parameters);
   }
 }

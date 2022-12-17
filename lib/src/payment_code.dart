@@ -43,6 +43,7 @@ class PaymentCode {
     _paymentCodeString = await _makeV1();
   }
 
+  // initialize payment code with given data
   Future<void> initFromPubKey(
     Uint8List publicKey,
     Uint8List chain, [
@@ -54,10 +55,12 @@ class PaymentCode {
     _paymentCodeString = await _makeV1();
   }
 
+  // returns the P2PKH address at index 0
   String notificationAddress() {
     return addressAt(0);
   }
 
+  // returns the P2PKH address at index
   String addressAt(int index) {
     final publicKey = derivePublicKey(index);
     final p2p = bitcoindart.P2PKH(
@@ -118,8 +121,8 @@ class PaymentCode {
     Util.copyBytes(mask, PUBLIC_KEY_X_LEN, buf1, 0, CHAIN_LEN);
 
     Util.copyBytes(
-        Util.xor(pubkey, buf0)!, 0, ret, PUBLIC_KEY_X_OFFSET, PUBLIC_KEY_X_LEN);
-    Util.copyBytes(Util.xor(chain, buf1)!, 0, ret, CHAIN_OFFSET, CHAIN_LEN);
+        Util.xor(pubkey, buf0), 0, ret, PUBLIC_KEY_X_OFFSET, PUBLIC_KEY_X_LEN);
+    Util.copyBytes(Util.xor(chain, buf1), 0, ret, CHAIN_OFFSET, CHAIN_LEN);
 
     return ret;
   }

@@ -15,9 +15,9 @@ abstract class Util {
     return path;
   }
 
-  static Uint8List? xor(Uint8List a, Uint8List b) {
+  static Uint8List xor(Uint8List a, Uint8List b) {
     if (a.length != b.length) {
-      return null;
+      throw ArgumentError("Byte count does not match");
     }
 
     Uint8List result = Uint8List(a.length);
@@ -29,10 +29,10 @@ abstract class Util {
     return result;
   }
 
-  static Uint8List getSha512HMAC(Uint8List a, Uint8List b) {
+  static Uint8List getSha512HMAC(Uint8List key, Uint8List data) {
     final hmac = HMac(SHA512Digest(), 128);
-    hmac.init(KeyParameter(a));
-    return hmac.process(b);
+    hmac.init(KeyParameter(key));
+    return hmac.process(data);
   }
 
   static void copyBytes(
@@ -97,5 +97,14 @@ abstract class Util {
       list.add(int.parse(string.substring(leg, leg + 2), radix: 16));
     }
     return Uint8List.fromList(list);
+  }
+
+  static String bigIntoToHex(BigInt value) {
+    final String hex = value.toRadixString(16);
+    if (hex.length % 2 == 0) {
+      return hex;
+    } else {
+      return "0$hex";
+    }
   }
 }
