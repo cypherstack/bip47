@@ -9,7 +9,11 @@ import 'package:cryptography/cryptography.dart';
 import 'package:pointycastle/pointycastle.dart';
 
 final bitcoin = NetworkType(
-    bip32: Bip32Type(public: 0x0488b21e, private: 0x0488ade4), wif: 0x80);
+  bip32: Bip32Type(
+      public: bitcoindart.bitcoin.bip32.public,
+      private: bitcoindart.bitcoin.bip32.private),
+  wif: bitcoindart.bitcoin.wif,
+);
 
 class PaymentAddress {
   late PaymentCode paymentCode;

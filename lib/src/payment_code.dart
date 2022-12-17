@@ -65,7 +65,7 @@ class PaymentCode {
     final publicKey = derivePublicKey(index);
     final p2p = bitcoindart.P2PKH(
       data: bitcoindart.PaymentData(pubkey: publicKey),
-      network: networkType,
+      network: bitcoindart.bitcoin,
     );
     return p2p.data.address!;
   }
