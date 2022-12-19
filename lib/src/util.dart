@@ -6,6 +6,45 @@ import 'package:pointycastle/api.dart';
 import 'package:pointycastle/digests/sha512.dart';
 import 'package:pointycastle/macs/hmac.dart';
 
+extension Uint8ListExt on Uint8List {
+  String get toHex {
+    // return hex.encode(this);
+    return Util.uint8listToString(this);
+  }
+
+  String get toBase58 {
+    return Util.encodeBase58(this);
+  }
+
+  String get toBase58Check {
+    return Util.encodeBase58Check(this);
+  }
+
+  /// returns copy of byte list in reverse order
+  Uint8List get reversed {
+    final reversed = Uint8List(length);
+    for (final byte in this) {
+      reversed.insert(0, byte);
+    }
+    return reversed;
+  }
+}
+
+extension StringExt on String {
+  Uint8List get fromHex {
+    // return Uint8List.fromList(hex.decode(this));
+    return Util.stringToUint8List(this);
+  }
+
+  Uint8List get fromBase58 {
+    return Util.decodeBase58(this);
+  }
+
+  Uint8List get fromBase58Check {
+    return Util.decodeBase58Check(this);
+  }
+}
+
 abstract class Util {
   static String getBip47Path(int account, [int? index]) {
     String path = "m/47'/0'/$account'";
@@ -84,7 +123,7 @@ abstract class Util {
 
   static String uint8listToString(Uint8List list) {
     String result = "";
-    for (var n in list) {
+    for (final n in list) {
       result +=
           (n.toRadixString(16).length == 1 ? "0" : "") + n.toRadixString(16);
     }
@@ -93,7 +132,7 @@ abstract class Util {
 
   static Uint8List stringToUint8List(String string) {
     List<int> list = [];
-    for (var leg = 0; leg < string.length; leg = leg + 2) {
+    for (int leg = 0; leg < string.length; leg = leg + 2) {
       list.add(int.parse(string.substring(leg, leg + 2), radix: 16));
     }
     return Uint8List.fromList(list);
