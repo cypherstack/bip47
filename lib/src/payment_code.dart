@@ -70,6 +70,11 @@ class PaymentCode {
     return p2p.data.address!;
   }
 
+  Uint8List notificationPublicKey() {
+    final node = BIP32.fromPublicKey(_publicKey!, _chainCode!, networkType);
+    return node.derive(0).publicKey;
+  }
+
   Uint8List derivePublicKey(int index) {
     final node = BIP32.fromPublicKey(_publicKey!, _chainCode!, networkType);
     return node.derive(index).publicKey;
