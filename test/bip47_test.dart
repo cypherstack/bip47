@@ -235,5 +235,51 @@ void main() {
           "f048f607fe51a0327f5e2528979311c78cb2de0d682c61e1180fc3d543b0000000000000000000000000000000000";
       expect(builtTx.toHex(), expectedTxid);
     });
+
+    test('Payment code v1 send addresses', () async {
+      final bip32NodeAlice = bip32.BIP32
+          .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
+          .derivePath(kPath);
+
+      final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
+        kPaymentCodeBob,
+        null,
+      );
+
+      final a2b = PaymentAddress()
+        ..initWith(bip32NodeAlice.derive(0).privateKey!, paymentCodeBobV1, 0);
+      expect(await a2b.getSendAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
+
+      a2b.index++;
+      expect(await a2b.getSendAddress(), "12u3Uued2fuko2nY4SoSFGCoGLCBUGPkk6");
+
+      a2b.index++;
+      expect(await a2b.getSendAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
+    });
+
+    test('Payment code v1 receive addresses', () async {
+      final bobBip32 = bip32.BIP32
+          .fromSeed(bip39.mnemonicToSeed(kSeedBob))
+          .derivePath(kPath);
+      final pcodeA = PaymentCode.fromPaymentCode(
+        kPaymentCodeAlice,
+        null,
+      );
+
+      final a2b = PaymentAddress()
+        ..initWith(bobBip32.derive(0).privateKey!, pcodeA, 0);
+      expect(
+          await a2b.getReceiveAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
+
+      final a2b1 = PaymentAddress()
+        ..initWith(bobBip32.derive(1).privateKey!, pcodeA, 0);
+      expect(
+          await a2b1.getReceiveAddress(), "12u3Uued2fuko2nY4SoSFGCoGLCBUGPkk6");
+
+      final a2b2 = PaymentAddress()
+        ..initWith(bobBip32.derive(2).privateKey!, pcodeA, 0);
+      expect(
+          await a2b2.getReceiveAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
+    });
   });
 }
