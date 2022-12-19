@@ -8,7 +8,7 @@ import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:cryptography/cryptography.dart';
 import 'package:pointycastle/pointycastle.dart';
 
-final bitcoin = NetworkType(
+final bitcoin_ = NetworkType(
   bip32: Bip32Type(
       public: bitcoindart.bitcoin.bip32.public,
       private: bitcoindart.bitcoin.bip32.private),
@@ -25,7 +25,7 @@ class PaymentAddress {
 
   void init(PaymentCode paymentCode, [NetworkType? networkType]) {
     this.paymentCode = paymentCode;
-    this.networkType = networkType ?? bitcoin;
+    this.networkType = networkType ?? bitcoin_;
     index = 0;
   }
 
@@ -38,7 +38,7 @@ class PaymentAddress {
     this.privKey = privKey;
     this.paymentCode = paymentCode;
     this.index = index;
-    this.networkType = networkType ?? bitcoin;
+    this.networkType = networkType ?? bitcoin_;
   }
 
   Future<ECPoint> get_sG() async {
