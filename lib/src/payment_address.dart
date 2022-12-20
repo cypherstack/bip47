@@ -9,29 +9,22 @@ import 'package:pointycastle/pointycastle.dart';
 
 class PaymentAddress {
   late final PaymentCode paymentCode;
-  late final bitcoindart.NetworkType networkType;
+  final bitcoindart.NetworkType networkType;
   late int index;
   Uint8List? privKey;
 
   static final curveParams = ECDomainParameters("secp256k1");
 
-  void init(PaymentCode paymentCode, [bitcoindart.NetworkType? networkType]) {
-    this.paymentCode = paymentCode;
-    this.networkType = networkType ?? bitcoindart.bitcoin;
-    index = 0;
-  }
+  PaymentAddress(this.paymentCode, [bitcoindart.NetworkType? networkType])
+      : networkType = networkType ?? bitcoindart.bitcoin,
+        index = 0;
 
-  void initWith(
-    Uint8List privKey,
-    PaymentCode paymentCode,
-    int index, [
+  PaymentAddress.initWithPrivateKey(
+    Uint8List this.privKey,
+    this.paymentCode,
+    this.index, [
     bitcoindart.NetworkType? networkType,
-  ]) {
-    this.privKey = privKey;
-    this.paymentCode = paymentCode;
-    this.index = index;
-    this.networkType = networkType ?? bitcoindart.bitcoin;
-  }
+  ]) : networkType = networkType ?? bitcoindart.bitcoin;
 
   ECPoint sG() => (curveParams.G * getSecretPoint())!;
 

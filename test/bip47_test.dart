@@ -237,8 +237,8 @@ void main() {
         null,
       );
 
-      final a2b = PaymentAddress()
-        ..initWith(bip32NodeAlice.derive(0).privateKey!, paymentCodeBobV1, 0);
+      final a2b = PaymentAddress.initWithPrivateKey(
+          bip32NodeAlice.derive(0).privateKey!, paymentCodeBobV1, 0);
       expect(a2b.getSendAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
 
       a2b.index++;
@@ -257,16 +257,16 @@ void main() {
         null,
       );
 
-      final a2b = PaymentAddress()
-        ..initWith(bobBip32.derive(0).privateKey!, pcodeA, 0);
+      final a2b = PaymentAddress.initWithPrivateKey(
+          bobBip32.derive(0).privateKey!, pcodeA, 0);
       expect(a2b.getReceiveAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
 
-      final a2b1 = PaymentAddress()
-        ..initWith(bobBip32.derive(1).privateKey!, pcodeA, 0);
+      final a2b1 = PaymentAddress.initWithPrivateKey(
+          bobBip32.derive(1).privateKey!, pcodeA, 0);
       expect(a2b1.getReceiveAddress(), "12u3Uued2fuko2nY4SoSFGCoGLCBUGPkk6");
 
-      final a2b2 = PaymentAddress()
-        ..initWith(bobBip32.derive(2).privateKey!, pcodeA, 0);
+      final a2b2 = PaymentAddress.initWithPrivateKey(
+          bobBip32.derive(2).privateKey!, pcodeA, 0);
       expect(a2b2.getReceiveAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
     });
   });
