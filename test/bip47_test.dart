@@ -39,8 +39,7 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
 
-      final paymentCodeAliceV1 = PaymentCode();
-      await paymentCodeAliceV1.initFromPubKey(
+      final paymentCodeAliceV1 = PaymentCode.initFromPubKey(
           bip32NodeAlice.publicKey, bip32NodeAlice.chainCode);
 
       expect(
@@ -52,8 +51,7 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedBob))
           .derivePath(kPath);
 
-      final paymentCodeBobV1 = PaymentCode();
-      await paymentCodeBobV1.initFromPubKey(
+      final paymentCodeBobV1 = PaymentCode.initFromPubKey(
           bip32NodeBob.publicKey, bip32NodeBob.chainCode);
 
       expect(
@@ -124,8 +122,7 @@ void main() {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
-      final paymentCodeAliceV1 = PaymentCode();
-      await paymentCodeAliceV1.initFromPubKey(
+      final paymentCodeAliceV1 = PaymentCode.initFromPubKey(
           bip32NodeAlice.publicKey, bip32NodeAlice.chainCode);
 
       expect(
