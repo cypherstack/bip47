@@ -54,13 +54,8 @@ class PaymentAddress {
   }
 
   String getReceiveAddress() {
-    BigInt privKeyValue = bitcoindart.ECPair.fromPrivateKey(
-      privKey!,
-      network: networkType,
-    ).privateKey!.toBigInt;
-
     final pair = bitcoindart.ECPair.fromPrivateKey(
-      _addSecp256k1(privKeyValue, getSecretPoint()).toBytes,
+      _addSecp256k1(privKey!.toBigInt, getSecretPoint()).toBytes,
       network: networkType,
     );
 
