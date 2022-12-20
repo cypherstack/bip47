@@ -88,6 +88,21 @@ void main() {
       expect(paymentCodeBobV1.getChain(), bip32NodeBob.chainCode);
     });
 
+    test('Payment code v1 isValid', () async {
+      final paymentCodeAliceV1 = PaymentCode.fromPaymentCode(
+        kPaymentCodeAlice,
+        null,
+      );
+
+      final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
+        kPaymentCodeBob,
+        null,
+      );
+
+      expect(paymentCodeBobV1.isValid(), true);
+      expect(paymentCodeAliceV1.isValid(), true);
+    });
+
     test('Payment code v1 notificationAddress', () async {
       final paymentCodeAliceV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
@@ -187,31 +202,10 @@ void main() {
       final txb = TransactionBuilder();
       txb.setVersion(1);
 
-      // txb.addInput(
-      //   Uint8List.fromList(txPointData),
-      //   txPointDataIndex,
-      //   null,
-      //   Uint8List.fromList(notificationScript.toList().sublist(1)),
-      // );
       txb.addInput(
         "9c6000d597c5008f7bfc2618aed5e4a6ae57677aab95078aae708e1cab11f486",
         txPointDataIndex,
-        // null,
-        // Uint8List.fromList(notificationScript.toList().sublist(1)),
       );
-
-      // txb.addInputUnsafe(
-      //   Uint8List.fromList(txPointData),
-      //   txPointDataIndex,
-      //   Input(
-      //     // script: notificationScript,
-      //     index: 1,
-      //     value: 30000,
-      //     prevOutScript: notificationScript,
-      //     prevOutType: "pubkeyhash",
-      //     sequence: 4294967295,
-      //   ),
-      // );
 
       txb.addOutput(paymentCodeBobV1.notificationAddress(), 10000);
       txb.addOutput(opReturnScript, 10000);
@@ -236,7 +230,7 @@ void main() {
       expect(builtTx.toHex(), expectedTxid);
     });
 
-    test('Payment code v1 send addresses', () async {
+    test('Payment code v1 alice send addresses', () async {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
@@ -248,16 +242,16 @@ void main() {
 
       final a2b = PaymentAddress()
         ..initWith(bip32NodeAlice.derive(0).privateKey!, paymentCodeBobV1, 0);
-      expect(await a2b.getSendAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
+      expect(a2b.getSendAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
 
       a2b.index++;
-      expect(await a2b.getSendAddress(), "12u3Uued2fuko2nY4SoSFGCoGLCBUGPkk6");
+      expect(a2b.getSendAddress(), "12u3Uued2fuko2nY4SoSFGCoGLCBUGPkk6");
 
       a2b.index++;
-      expect(await a2b.getSendAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
+      expect(a2b.getSendAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
     });
 
-    test('Payment code v1 receive addresses', () async {
+    test('Payment code v1 bob receive addresses', () async {
       final bobBip32 = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedBob))
           .derivePath(kPath);
@@ -268,18 +262,15 @@ void main() {
 
       final a2b = PaymentAddress()
         ..initWith(bobBip32.derive(0).privateKey!, pcodeA, 0);
-      expect(
-          await a2b.getReceiveAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
+      expect(a2b.getReceiveAddress(), "141fi7TY3h936vRUKh1qfUZr8rSBuYbVBK");
 
       final a2b1 = PaymentAddress()
         ..initWith(bobBip32.derive(1).privateKey!, pcodeA, 0);
-      expect(
-          await a2b1.getReceiveAddress(), "12u3Uued2fuko2nY4SoSFGCoGLCBUGPkk6");
+      expect(a2b1.getReceiveAddress(), "12u3Uued2fuko2nY4SoSFGCoGLCBUGPkk6");
 
       final a2b2 = PaymentAddress()
         ..initWith(bobBip32.derive(2).privateKey!, pcodeA, 0);
-      expect(
-          await a2b2.getReceiveAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
+      expect(a2b2.getReceiveAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
     });
   });
 }
