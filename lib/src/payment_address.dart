@@ -28,9 +28,20 @@ class PaymentAddress {
 
   ECPoint sG() => (curveParams.G * getSecretPoint())!;
 
-  SecretPoint getSharedSecret() => _sharedSecret();
+  SecretPoint getSharedSecret() =>
+      SecretPoint(privKey!, paymentCode.derivePublicKey(index));
 
-  BigInt getSecretPoint() => _secretPoint();
+  BigInt getSecretPoint() {
+    // convert hash to value 's'
+    final BigInt s = hashSharedSecret().toBigInt;
+
+    // check that 's' is on the secp256k1 curve
+    if (!_isSecp256k1(s)) {
+      throw Exception("Secret point not on secp256k1 curve");
+    }
+
+    return s;
+  }
 
   ECPoint getECPoint() =>
       curveParams.curve.decodePoint(paymentCode.derivePublicKey(index))!;
@@ -77,26 +88,11 @@ class PaymentAddress {
     return value;
   }
 
-  SecretPoint _sharedSecret() =>
-      SecretPoint(privKey!, paymentCode.derivePublicKey(index));
-
   bool _isSecp256k1(BigInt b) {
     if (b.compareTo(BigInt.one) <= 0 || b.bitLength > curveParams.n.bitLength) {
       return false;
     }
 
     return true;
-  }
-
-  BigInt _secretPoint() {
-    // convert hash to value 's'
-    final BigInt s = hashSharedSecret().toBigInt;
-
-    // check that 's' is on the secp256k1 curve
-    if (!_isSecp256k1(s)) {
-      throw Exception("Secret point not on secp256k1 curve");
-    }
-
-    return s;
   }
 }
