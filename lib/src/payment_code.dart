@@ -4,7 +4,6 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:pointycastle/api.dart';
-import 'package:pointycastle/digests/sha256.dart';
 import 'package:pointycastle/digests/sha512.dart';
 import 'package:pointycastle/macs/hmac.dart';
 
@@ -118,12 +117,14 @@ class PaymentCode {
     return _paymentCodeString ?? "Error";
   }
 
+  /// generate mask to blind payment code
   static Uint8List getMask(Uint8List sPoint, Uint8List oPoint) {
     final hmac = HMac(SHA512Digest(), 128);
     hmac.init(KeyParameter(oPoint));
     return hmac.process(sPoint);
   }
 
+  /// blind the payment code for inclusion in OP_RETURN script
   static Uint8List blind(Uint8List payload, Uint8List mask) {
     Uint8List ret = Uint8List(PAYLOAD_LEN);
     Uint8List pubkey = Uint8List(PUBLIC_KEY_X_LEN);
@@ -145,6 +146,7 @@ class PaymentCode {
     return ret;
   }
 
+  // parse pub key and chaincode from payment code
   List<Uint8List> _parse() {
     Uint8List pcBytes = _paymentCodeString!.fromBase58Check;
 
@@ -186,21 +188,7 @@ class PaymentCode {
     paymentCode[0] = 0x47;
     Util.copyBytes(payload, 0, paymentCode, 1, payload.length);
 
-    // append checksum
-    final sha256 = SHA256Digest();
-    final firstRun = sha256.process(paymentCode);
-    final secondRun = sha256.process(firstRun);
-    Uint8List checksum = Uint8List(CHECKSUM_LEN);
-    for (int i = 0; i < CHECKSUM_LEN; i++) {
-      checksum[i] = secondRun[i];
-    }
-    Uint8List paymentCodeChecksum =
-        Uint8List(paymentCode.length + checksum.length);
-    Util.copyBytes(paymentCode, 0, paymentCodeChecksum, 0, paymentCode.length);
-    Util.copyBytes(checksum, 0, paymentCodeChecksum,
-        paymentCodeChecksum.length - CHECKSUM_LEN, checksum.length);
-
-    return paymentCodeChecksum.toBase58;
+    return paymentCode.toBase58Check;
   }
 
   bool isValid() {
