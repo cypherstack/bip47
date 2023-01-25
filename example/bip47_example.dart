@@ -10,11 +10,8 @@ void main() async {
   final node =
       BIP32.fromSeed(bip39.mnemonicToSeed(seedAlice)).derivePath("m/47'/0'/0'");
 
-  // create code
-  final paymentCode = PaymentCode();
-
   // initialize from bip32 node pubkey and chaincode
-  await paymentCode.initFromPubKey(
+  final paymentCode = PaymentCode.initFromPubKey(
     node.publicKey,
     node.chainCode,
   );

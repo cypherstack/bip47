@@ -178,7 +178,8 @@ void main() {
       );
 
       final opReturnScript = bscript.compile([
-        (OPS["OP_RETURN"] as int),
+        0x6a,
+        // (OPS["OP_RETURN"] as int),
         blindedPaymentCode,
       ]);
       expect(
