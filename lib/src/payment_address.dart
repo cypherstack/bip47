@@ -49,12 +49,16 @@ class PaymentAddress {
   Uint8List hashSharedSecret() =>
       SHA256Digest().process(getSharedSecret().ecdhSecret());
 
-  String getSendAddress() {
+  bitcoindart.ECPair getSendAddressKeyPair() {
     final sum = getECPoint() + sG();
-    final pair = bitcoindart.ECPair.fromPublicKey(
+    return bitcoindart.ECPair.fromPublicKey(
       sum!.getEncoded(true),
       network: networkType,
     );
+  }
+
+  String getSendAddress() {
+    final pair = getSendAddressKeyPair();
 
     final p2pkh = bitcoindart.P2PKH(
       data: bitcoindart.PaymentData(pubkey: pair.publicKey),
@@ -64,11 +68,16 @@ class PaymentAddress {
     return p2pkh.data.address!;
   }
 
-  String getReceiveAddress() {
+  bitcoindart.ECPair getReceiveAddressKeyPair() {
     final pair = bitcoindart.ECPair.fromPrivateKey(
       _addSecp256k1(privKey!.toBigInt, getSecretPoint()).toBytes,
       network: networkType,
     );
+    return pair;
+  }
+
+  String getReceiveAddress() {
+    final pair = getSendAddressKeyPair();
 
     final p2pkh = bitcoindart.P2PKH(
       data: bitcoindart.PaymentData(pubkey: pair.publicKey),
