@@ -107,15 +107,16 @@ void main() {
         null,
       );
 
-      expect(
-          paymentCodeAliceV1.notificationAddress(), kNotificationAddressAlice);
+      expect(paymentCodeAliceV1.notificationAddressP2PKH(),
+          kNotificationAddressAlice);
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
         null,
       );
 
-      expect(paymentCodeBobV1.notificationAddress(), kNotificationAddressBob);
+      expect(
+          paymentCodeBobV1.notificationAddressP2PKH(), kNotificationAddressBob);
     });
 
     test('notification tx', () async {
@@ -205,7 +206,7 @@ void main() {
         txPointDataIndex,
       );
 
-      txb.addOutput(paymentCodeBobV1.notificationAddress(), 10000);
+      txb.addOutput(paymentCodeBobV1.notificationAddressP2PKH(), 10000);
       txb.addOutput(opReturnScript, 10000);
 
       txb.sign(
