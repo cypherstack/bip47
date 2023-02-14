@@ -34,13 +34,12 @@ const String kAliceDesignatedPrivateKey =
 
 void main() {
   group("payment codes v1", () {
-    test('Payment code v1 initFromPubKey', () {
+    test('Payment code v1 initFromBip32Node succeeds', () {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
 
-      final paymentCodeAliceV1 = PaymentCode.initFromPubKey(
-          bip32NodeAlice.publicKey, bip32NodeAlice.chainCode);
+      final paymentCodeAliceV1 = PaymentCode.initFromBip32Node(bip32NodeAlice);
 
       expect(
         paymentCodeAliceV1.toString(),
@@ -51,12 +50,39 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedBob))
           .derivePath(kPath);
 
-      final paymentCodeBobV1 = PaymentCode.initFromPubKey(
-          bip32NodeBob.publicKey, bip32NodeBob.chainCode);
+      final paymentCodeBobV1 = PaymentCode.initFromBip32Node(bip32NodeBob);
 
       expect(
         paymentCodeBobV1.toString(),
         kPaymentCodeBob,
+      );
+    });
+
+    test('Payment code v1 initFromBip32Node fails due to network info mismatch',
+        () {
+      final bip32NodeAlice = bip32.BIP32
+          .fromSeed(
+            bip39.mnemonicToSeed(kSeedAlice),
+            bip32.NetworkType(
+              wif: 99,
+              bip32: bip32.Bip32Type(
+                public: 1,
+                private: 0,
+              ),
+            ),
+          )
+          .derivePath(kPath);
+
+      String? exceptionMessage;
+      try {
+        PaymentCode.initFromBip32Node(bip32NodeAlice);
+      } catch (e) {
+        exceptionMessage = e.toString();
+      }
+
+      expect(
+        exceptionMessage,
+        "Exception: BIP32 network info does not match provided networkType info",
       );
     });
 
@@ -123,8 +149,7 @@ void main() {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
-      final paymentCodeAliceV1 = PaymentCode.initFromPubKey(
-          bip32NodeAlice.publicKey, bip32NodeAlice.chainCode);
+      final paymentCodeAliceV1 = PaymentCode.initFromBip32Node(bip32NodeAlice);
 
       expect(
           paymentCodeAliceV1.getPayload().toHex,

@@ -52,14 +52,19 @@ class PaymentCode {
     _paymentCodeString = _makeV1();
   }
 
-  // initialize payment code given a pub key and chaincode
-  PaymentCode.initFromPubKey(
-    Uint8List publicKey,
-    Uint8List chain, [
+  // initialize payment code given a bip32 object
+  PaymentCode.initFromBip32Node(
+    bip32.BIP32 bip32Node, [
     bitcoindart.NetworkType? networkType,
   ]) : networkType = networkType ?? bitcoindart.bitcoin {
-    _publicKey = publicKey;
-    _chainCode = chain;
+    if (bip32Node.network.wif != this.networkType.wif ||
+        bip32Node.network.bip32.public != this.networkType.bip32.public ||
+        bip32Node.network.bip32.private != this.networkType.bip32.private) {
+      throw Exception(
+          "BIP32 network info does not match provided networkType info");
+    }
+    _publicKey = bip32Node.publicKey;
+    _chainCode = bip32Node.chainCode;
     _paymentCodeString = _makeV1();
   }
 

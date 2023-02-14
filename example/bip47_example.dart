@@ -11,9 +11,8 @@ void main() async {
       BIP32.fromSeed(bip39.mnemonicToSeed(seedAlice)).derivePath("m/47'/0'/0'");
 
   // initialize from bip32 node pubkey and chaincode
-  final paymentCode = PaymentCode.initFromPubKey(
-    node.publicKey,
-    node.chainCode,
+  final paymentCode = PaymentCode.initFromBip32Node(
+    node,
   );
 
   print("payment code: $paymentCode");
