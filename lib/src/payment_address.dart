@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:bip32/bip32.dart';
 import 'package:bip47/src/payment_code.dart';
 import 'package:bip47/src/secret_point.dart';
 import 'package:bip47/src/util.dart';
@@ -8,28 +9,26 @@ import 'package:pointycastle/digests/sha256.dart';
 import 'package:pointycastle/pointycastle.dart';
 
 class PaymentAddress {
-  late final PaymentCode paymentCode;
+  final PaymentCode paymentCode;
+  final BIP32? bip32Node;
   final bitcoindart.NetworkType networkType;
-  late int index;
-  Uint8List? privKey;
+  int index;
 
   static final curveParams = ECDomainParameters("secp256k1");
 
-  PaymentAddress(this.paymentCode, [bitcoindart.NetworkType? networkType])
-      : networkType = networkType ?? bitcoindart.bitcoin,
-        index = 0;
-
-  PaymentAddress.initWithPrivateKey(
-    Uint8List this.privKey,
-    this.paymentCode,
-    this.index, [
+  PaymentAddress({
+    required this.paymentCode,
+    this.bip32Node,
     bitcoindart.NetworkType? networkType,
-  ]) : networkType = networkType ?? bitcoindart.bitcoin;
+    this.index = 0,
+  }) : networkType = networkType ?? bitcoindart.bitcoin;
 
   ECPoint sG() => (curveParams.G * getSecretPoint())!;
 
-  SecretPoint getSharedSecret() =>
-      SecretPoint(privKey!, paymentCode.derivePublicKey(index));
+  SecretPoint getSharedSecret() => SecretPoint(
+        bip32Node!.privateKey!,
+        paymentCode.derivePublicKey(index),
+      );
 
   BigInt getSecretPoint() {
     // convert hash to value 's'
@@ -70,7 +69,10 @@ class PaymentAddress {
 
   bitcoindart.ECPair getReceiveAddressKeyPair() {
     final pair = bitcoindart.ECPair.fromPrivateKey(
-      _addSecp256k1(privKey!.toBigInt, getSecretPoint()).toBytes,
+      _addSecp256k1(
+        bip32Node!.privateKey!.toBigInt,
+        getSecretPoint(),
+      ).toBytes,
       network: networkType,
     );
     return pair;
