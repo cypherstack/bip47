@@ -38,7 +38,7 @@ class PaymentCode {
     Uint8List payload, [
     bitcoindart.NetworkType? networkType,
   ]) : networkType = networkType ?? bitcoindart.bitcoin {
-    if (payload.length != 80) {
+    if (payload.length != PAYLOAD_LEN) {
       throw Exception("Invalid payload size: ${payload.length}");
     }
 
