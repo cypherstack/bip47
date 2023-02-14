@@ -34,7 +34,7 @@ class PaymentCode {
     _chainCode = parsed[1];
   }
 
-  PaymentCode.initFromPayload(
+  PaymentCode.fromPayload(
     Uint8List payload, [
     bitcoindart.NetworkType? networkType,
   ]) : networkType = networkType ?? bitcoindart.bitcoin {
@@ -53,7 +53,7 @@ class PaymentCode {
   }
 
   // initialize payment code given a bip32 object
-  PaymentCode.initFromBip32Node(
+  PaymentCode.fromBip32Node(
     bip32.BIP32 bip32Node, [
     bitcoindart.NetworkType? networkType,
   ]) : networkType = networkType ?? bitcoindart.bitcoin {

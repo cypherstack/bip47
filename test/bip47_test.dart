@@ -39,7 +39,7 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
 
-      final paymentCodeAliceV1 = PaymentCode.initFromBip32Node(bip32NodeAlice);
+      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(bip32NodeAlice);
 
       expect(
         paymentCodeAliceV1.toString(),
@@ -50,7 +50,7 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedBob))
           .derivePath(kPath);
 
-      final paymentCodeBobV1 = PaymentCode.initFromBip32Node(bip32NodeBob);
+      final paymentCodeBobV1 = PaymentCode.fromBip32Node(bip32NodeBob);
 
       expect(
         paymentCodeBobV1.toString(),
@@ -75,7 +75,7 @@ void main() {
 
       String? exceptionMessage;
       try {
-        PaymentCode.initFromBip32Node(bip32NodeAlice);
+        PaymentCode.fromBip32Node(bip32NodeAlice);
       } catch (e) {
         exceptionMessage = e.toString();
       }
@@ -149,7 +149,7 @@ void main() {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
-      final paymentCodeAliceV1 = PaymentCode.initFromBip32Node(bip32NodeAlice);
+      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(bip32NodeAlice);
 
       expect(
           paymentCodeAliceV1.getPayload().toHex,
