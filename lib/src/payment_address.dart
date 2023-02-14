@@ -34,9 +34,9 @@ class PaymentAddress {
     // convert hash to value 's'
     final BigInt s = hashSharedSecret().toBigInt;
 
-    // check that 's' is on the secp256k1 curve
+    // check that 's' is a member of the associated scalar group
     if (!_isSecp256k1(s)) {
-      throw Exception("Secret point not on secp256k1 curve");
+      throw Exception("Secret point is not a member of the secp256k1 group");
     }
 
     return s;
