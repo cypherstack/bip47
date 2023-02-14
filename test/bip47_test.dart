@@ -34,7 +34,7 @@ const String kAliceDesignatedPrivateKey =
 
 void main() {
   group("payment codes v1", () {
-    test('Payment code v1 initFromPubKey', () async {
+    test('Payment code v1 initFromPubKey', () {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
@@ -60,7 +60,7 @@ void main() {
       );
     });
 
-    test('Payment code v1 initFromPaymentCode', () async {
+    test('Payment code v1 initFromPaymentCode', () {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
@@ -86,7 +86,7 @@ void main() {
       expect(paymentCodeBobV1.getChain(), bip32NodeBob.chainCode);
     });
 
-    test('Payment code v1 isValid', () async {
+    test('Payment code v1 isValid', () {
       final paymentCodeAliceV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
         null,
@@ -101,7 +101,7 @@ void main() {
       expect(paymentCodeAliceV1.isValid(), true);
     });
 
-    test('Payment code v1 notificationAddress', () async {
+    test('Payment code v1 notificationAddress', () {
       final paymentCodeAliceV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
         null,
@@ -119,7 +119,7 @@ void main() {
           paymentCodeBobV1.notificationAddressP2PKH(), kNotificationAddressBob);
     });
 
-    test('notification tx', () async {
+    test('notification tx', () {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
@@ -229,7 +229,7 @@ void main() {
       expect(builtTx.toHex(), expectedTxid);
     });
 
-    test('Payment code v1 alice send addresses', () async {
+    test('Payment code v1 alice send addresses', () {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
@@ -250,7 +250,7 @@ void main() {
       expect(a2b.getSendAddress(), "1FsBVhT5dQutGwaPePTYMe5qvYqqjxyftc");
     });
 
-    test('Payment code v1 bob receive addresses', () async {
+    test('Payment code v1 bob receive addresses', () {
       final bobBip32 = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedBob))
           .derivePath(kPath);
