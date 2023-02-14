@@ -18,8 +18,7 @@ class PaymentCode {
   static const int CHECKSUM_LEN = 4;
 
   late final String _paymentCodeString;
-  late final Uint8List _publicKey;
-  late final Uint8List _chainCode;
+  late final bip32.BIP32 _bip32Node;
   final bitcoindart.NetworkType networkType;
 
   PaymentCode._() : networkType = bitcoindart.bitcoin;
@@ -30,8 +29,11 @@ class PaymentCode {
     bitcoindart.NetworkType? networkType,
   ]) : networkType = networkType ?? bitcoindart.bitcoin {
     final parsed = _parse();
-    _publicKey = parsed[0];
-    _chainCode = parsed[1];
+    _bip32Node = bip32.BIP32.fromPublicKey(
+      parsed[0],
+      parsed[1],
+      _getBip32NetworkTypeFrom(this.networkType),
+    );
   }
 
   PaymentCode.fromPayload(
@@ -42,12 +44,22 @@ class PaymentCode {
       throw Exception("Invalid payload size: ${payload.length}");
     }
 
-    _publicKey = Uint8List(PUBLIC_KEY_Y_LEN + PUBLIC_KEY_X_LEN);
-    _chainCode = Uint8List(CHAIN_LEN);
+    if (payload.first != 1) {
+      throw Exception("Unsupported payment code version: ${payload.first}");
+    }
 
-    Util.copyBytes(payload, PUBLIC_KEY_Y_OFFSET, _publicKey, 0,
+    final publicKey = Uint8List(PUBLIC_KEY_Y_LEN + PUBLIC_KEY_X_LEN);
+    final chainCode = Uint8List(CHAIN_LEN);
+
+    Util.copyBytes(payload, PUBLIC_KEY_Y_OFFSET, publicKey, 0,
         PUBLIC_KEY_Y_LEN + PUBLIC_KEY_X_LEN);
-    Util.copyBytes(payload, CHAIN_OFFSET, _chainCode, 0, CHAIN_LEN);
+    Util.copyBytes(payload, CHAIN_OFFSET, chainCode, 0, CHAIN_LEN);
+
+    _bip32Node = bip32.BIP32.fromPublicKey(
+      publicKey,
+      chainCode,
+      _getBip32NetworkTypeFrom(this.networkType),
+    );
 
     _paymentCodeString = _makeV1();
   }
@@ -63,8 +75,7 @@ class PaymentCode {
       throw Exception(
           "BIP32 network info does not match provided networkType info");
     }
-    _publicKey = bip32Node.publicKey;
-    _chainCode = bip32Node.chainCode;
+    _bip32Node = bip32Node;
     _paymentCodeString = _makeV1();
   }
 
@@ -88,17 +99,10 @@ class PaymentCode {
     return derivePublicKey(0);
   }
 
-  /// derive child pub key at the given [index] using the payment code's pub key
-  /// and chaincode
+  /// derive child pub key at the given [index] using the payment code's bip32
+  /// object
   Uint8List derivePublicKey(int index) {
-    final bip32.NetworkType networkType = bip32.NetworkType(
-      bip32: bip32.Bip32Type(
-          public: this.networkType.bip32.public,
-          private: this.networkType.bip32.private),
-      wif: this.networkType.wif,
-    );
-    final node = bip32.BIP32.fromPublicKey(_publicKey, _chainCode, networkType);
-    return node.derive(index).publicKey;
+    return _bip32Node.derive(index).publicKey;
   }
 
   Uint8List getPayload() {
@@ -112,9 +116,9 @@ class PaymentCode {
 
   int getType() => getPayload().first;
 
-  Uint8List getPubKey() => _publicKey;
+  Uint8List getPubKey() => _bip32Node.publicKey;
 
-  Uint8List getChain() => _chainCode;
+  Uint8List getChain() => _bip32Node.chainCode;
 
   @override
   String toString() => _paymentCodeString;
@@ -148,6 +152,18 @@ class PaymentCode {
     return ret;
   }
 
+  bip32.NetworkType _getBip32NetworkTypeFrom(
+    bitcoindart.NetworkType networkType,
+  ) {
+    return bip32.NetworkType(
+      wif: networkType.wif,
+      bip32: bip32.Bip32Type(
+        public: networkType.bip32.public,
+        private: networkType.bip32.private,
+      ),
+    );
+  }
+
   // parse pub key and chaincode from payment code
   List<Uint8List> _parse() {
     Uint8List pcBytes = _paymentCodeString.fromBase58Check;
@@ -168,13 +184,15 @@ class PaymentCode {
   // generate v1 payment code from the chaincode and pub key
   String _makeV1() {
     // validate pubkey length
-    if (_publicKey.length != PUBLIC_KEY_X_LEN + PUBLIC_KEY_Y_LEN) {
-      throw Exception("Invalid public key length: ${_publicKey.length}");
+    if (_bip32Node.publicKey.length != PUBLIC_KEY_X_LEN + PUBLIC_KEY_Y_LEN) {
+      throw Exception(
+          "Invalid public key length: ${_bip32Node.publicKey.length}");
     }
 
     // validate chaincode length
-    if (_chainCode.length != CHAIN_LEN) {
-      throw Exception("Invalid chain code length: ${_chainCode.length}");
+    if (_bip32Node.chainCode.length != CHAIN_LEN) {
+      throw Exception(
+          "Invalid chain code length: ${_bip32Node.chainCode.length}");
     }
 
     Uint8List payload = Uint8List(PAYLOAD_LEN);
@@ -192,10 +210,10 @@ class PaymentCode {
     payload[1] = 0x00;
 
     // replace sign & x code (33 bytes)
-    Util.copyBytes(_publicKey, 0, payload, PUBLIC_KEY_Y_OFFSET,
+    Util.copyBytes(_bip32Node.publicKey, 0, payload, PUBLIC_KEY_Y_OFFSET,
         PUBLIC_KEY_X_LEN + PUBLIC_KEY_Y_LEN);
     // replace chain code (32 bytes)
-    Util.copyBytes(_chainCode, 0, payload, CHAIN_OFFSET, CHAIN_LEN);
+    Util.copyBytes(_bip32Node.chainCode, 0, payload, CHAIN_OFFSET, CHAIN_LEN);
 
     // add version byte
     paymentCode[0] = 0x47;

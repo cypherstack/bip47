@@ -5,7 +5,6 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip47/bip47.dart';
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart';
-// import 'package:pointycastle/pointycastle.dart';
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:test/test.dart';
 
@@ -32,8 +31,54 @@ const kNotificationAddressBob = "1ChvUUvht2hUQufHBXF8NgLhW8SwE2ecGV";
 const String kAliceDesignatedPrivateKey =
     "Kx983SRhAZpAhj7Aac1wUXMJ6XZeyJKqCxJJ49dxEbYCT4a1ozRD";
 
+const String kAlicePayloadHexString =
+    "010002b85034fb08a8bfefd22848238257b252721454bbbfba2c3667f168837ea2cdad671af9f65904632e2dcc0c6ad314e11d53fc82fa4c4ea27a4a14eccecc478fee00000000000000000000000000";
+
 void main() {
   group("payment codes v1", () {
+    test('Payment code v1 fromPayload succeeds', () {
+      final bytes = kAlicePayloadHexString.fromHex;
+
+      final paymentCodeAliceV1 = PaymentCode.fromPayload(bytes);
+
+      expect(
+        paymentCodeAliceV1.toString(),
+        kPaymentCodeAlice,
+      );
+    });
+
+    test('Payment code v1 fromPayload fails due to invalid payload length', () {
+      final invalidLengthPayload = Uint8List.fromList([0, 1, 2, 3, 4]);
+
+      Exception? exception;
+      try {
+        PaymentCode.fromPayload(invalidLengthPayload);
+      } catch (e) {
+        exception = e as Exception;
+      }
+
+      expect(
+        exception?.toString(),
+        "Exception: Invalid payload size: 5",
+      );
+    });
+
+    test('Payment code v1 fromPayload fails due to bad version', () {
+      final bytes = Uint8List(PaymentCode.PAYLOAD_LEN);
+
+      Exception? exception;
+      try {
+        PaymentCode.fromPayload(bytes);
+      } catch (e) {
+        exception = e as Exception;
+      }
+
+      expect(
+        exception?.toString(),
+        "Exception: Unsupported payment code version: 0",
+      );
+    });
+
     test('Payment code v1 initFromBip32Node succeeds', () {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
@@ -83,6 +128,19 @@ void main() {
       expect(
         exceptionMessage,
         "Exception: BIP32 network info does not match provided networkType info",
+      );
+    });
+
+    test('Payment code v1 getPayload', () {
+      final bip32NodeAlice = bip32.BIP32
+          .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
+          .derivePath(kPath);
+
+      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(bip32NodeAlice);
+
+      expect(
+        paymentCodeAliceV1.getPayload().toHex,
+        kAlicePayloadHexString,
       );
     });
 
