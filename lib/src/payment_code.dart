@@ -167,6 +167,16 @@ class PaymentCode {
 
   // generate v1 payment code from the chaincode and pub key
   String _makeV1() {
+    // validate pubkey length
+    if (_publicKey.length != PUBLIC_KEY_X_LEN + PUBLIC_KEY_Y_LEN) {
+      throw Exception("Invalid public key length: ${_publicKey.length}");
+    }
+
+    // validate chaincode length
+    if (_chainCode.length != CHAIN_LEN) {
+      throw Exception("Invalid chain code length: ${_chainCode.length}");
+    }
+
     Uint8List payload = Uint8List(PAYLOAD_LEN);
     Uint8List paymentCode = Uint8List(PAYLOAD_LEN + 1);
 
@@ -182,14 +192,14 @@ class PaymentCode {
     payload[1] = 0x00;
 
     // replace sign & x code (33 bytes)
-    Util.copyBytes(
-        _publicKey, 0, payload, PUBLIC_KEY_Y_OFFSET, _publicKey.length);
+    Util.copyBytes(_publicKey, 0, payload, PUBLIC_KEY_Y_OFFSET,
+        PUBLIC_KEY_X_LEN + PUBLIC_KEY_Y_LEN);
     // replace chain code (32 bytes)
-    Util.copyBytes(_chainCode, 0, payload, CHAIN_OFFSET, _chainCode.length);
+    Util.copyBytes(_chainCode, 0, payload, CHAIN_OFFSET, CHAIN_LEN);
 
     // add version byte
     paymentCode[0] = 0x47;
-    Util.copyBytes(payload, 0, paymentCode, 1, payload.length);
+    Util.copyBytes(payload, 0, paymentCode, 1, PAYLOAD_LEN);
 
     return paymentCode.toBase58Check;
   }
