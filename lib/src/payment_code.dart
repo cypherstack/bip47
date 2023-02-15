@@ -1,9 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:bip32/bip32.dart';
+import 'package:bip32/bip32.dart' as bip32;
+import 'package:bip47/bip47.dart';
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
-import 'package:cryptography/cryptography.dart';
+import 'package:pointycastle/api.dart';
+import 'package:pointycastle/digests/sha512.dart';
+import 'package:pointycastle/macs/hmac.dart';
 
 class PaymentCode {
   static const int PUBLIC_KEY_Y_OFFSET = 2;
@@ -15,68 +18,96 @@ class PaymentCode {
   static const int PAYLOAD_LEN = 80;
   static const int CHECKSUM_LEN = 4;
 
-  String? _paymentCodeString;
-  Uint8List? _publicKey;
-  Uint8List? _chainCode;
-  NetworkType? networkType;
+  late final String _paymentCodeString;
+  late final bip32.BIP32 _bip32Node;
+  final bitcoindart.NetworkType networkType;
 
-  PaymentCode();
+  PaymentCode._() : networkType = bitcoindart.bitcoin;
 
-  PaymentCode.fromPaymentCode(this._paymentCodeString, this.networkType) {
+  // initialize payment code given a payment code string
+  PaymentCode.fromPaymentCode(
+    this._paymentCodeString, [
+    bitcoindart.NetworkType? networkType,
+  ]) : networkType = networkType ?? bitcoindart.bitcoin {
     final parsed = _parse();
-    _publicKey = parsed[0];
-    _chainCode = parsed[1];
+    _bip32Node = bip32.BIP32.fromPublicKey(
+      parsed[0],
+      parsed[1],
+      _getBip32NetworkTypeFrom(this.networkType),
+    );
   }
 
-  Future<void> initFromPayload(Uint8List payload) async {
-    if (payload.length != 80) {
-      return;
+  PaymentCode.fromPayload(
+    Uint8List payload, [
+    bitcoindart.NetworkType? networkType,
+  ]) : networkType = networkType ?? bitcoindart.bitcoin {
+    if (payload.length != PAYLOAD_LEN) {
+      throw Exception("Invalid payload size: ${payload.length}");
     }
 
-    _publicKey = Uint8List(PUBLIC_KEY_Y_LEN + PUBLIC_KEY_X_LEN);
-    _chainCode = Uint8List(CHAIN_LEN);
+    if (payload.first != 1) {
+      throw Exception("Unsupported payment code version: ${payload.first}");
+    }
 
-    Util.copyBytes(payload, PUBLIC_KEY_Y_OFFSET, _publicKey!, 0,
+    final publicKey = Uint8List(PUBLIC_KEY_Y_LEN + PUBLIC_KEY_X_LEN);
+    final chainCode = Uint8List(CHAIN_LEN);
+
+    Util.copyBytes(payload, PUBLIC_KEY_Y_OFFSET, publicKey, 0,
         PUBLIC_KEY_Y_LEN + PUBLIC_KEY_X_LEN);
-    Util.copyBytes(payload, CHAIN_OFFSET, _chainCode!, 0, CHAIN_LEN);
+    Util.copyBytes(payload, CHAIN_OFFSET, chainCode, 0, CHAIN_LEN);
 
-    _paymentCodeString = await _makeV1();
+    _bip32Node = bip32.BIP32.fromPublicKey(
+      publicKey,
+      chainCode,
+      _getBip32NetworkTypeFrom(this.networkType),
+    );
+
+    _paymentCodeString = _makeV1();
   }
 
-  // initialize payment code with given data
-  Future<void> initFromPubKey(
-    Uint8List publicKey,
-    Uint8List chain, [
-    NetworkType? networkType,
-  ]) async {
-    _publicKey = publicKey;
-    _chainCode = chain;
-    this.networkType = networkType;
-    _paymentCodeString = await _makeV1();
+  // initialize payment code given a bip32 object
+  PaymentCode.fromBip32Node(
+    bip32.BIP32 bip32Node, [
+    bitcoindart.NetworkType? networkType,
+  ]) : networkType = networkType ?? bitcoindart.bitcoin {
+    if (bip32Node.network.wif != this.networkType.wif ||
+        bip32Node.network.bip32.public != this.networkType.bip32.public ||
+        bip32Node.network.bip32.private != this.networkType.bip32.private) {
+      throw Exception(
+          "BIP32 network info does not match provided networkType info");
+    }
+    _bip32Node = bip32Node;
+    _paymentCodeString = _makeV1();
   }
 
   // returns the P2PKH address at index 0
-  String notificationAddress() {
-    return addressAt(0);
+  String notificationAddressP2PKH() {
+    return p2pkhAddressAt(0);
   }
 
   // returns the P2PKH address at index
-  String addressAt(int index) {
+  String p2pkhAddressAt(int index) {
     final publicKey = derivePublicKey(index);
     final p2p = bitcoindart.P2PKH(
       data: bitcoindart.PaymentData(pubkey: publicKey),
-      network: bitcoindart.bitcoin,
+      network: networkType,
     );
     return p2p.data.address!;
   }
 
+  /// get the notification address pub key
+  Uint8List notificationPublicKey() {
+    return derivePublicKey(0);
+  }
+
+  /// derive child pub key at the given [index] using the payment code's bip32
+  /// object
   Uint8List derivePublicKey(int index) {
-    final node = BIP32.fromPublicKey(_publicKey!, _chainCode!, networkType);
-    return node.derive(index).publicKey;
+    return _bip32Node.derive(index).publicKey;
   }
 
   Uint8List getPayload() {
-    Uint8List pcBytes = Util.decodeBase58Check(_paymentCodeString!);
+    Uint8List pcBytes = _paymentCodeString.fromBase58Check;
 
     Uint8List payload = Uint8List(PAYLOAD_LEN);
     Util.copyBytes(pcBytes, 1, payload, 0, payload.length);
@@ -84,29 +115,28 @@ class PaymentCode {
     return payload;
   }
 
-  int getType() {
-    Uint8List payload = getPayload();
-    return payload.first;
-  }
+  int getType() => getPayload().first;
 
-  Uint8List getPubKey() {
-    return _publicKey!;
-  }
+  Uint8List getPubKey() => _bip32Node.publicKey;
 
-  Uint8List getChain() {
-    return _chainCode!;
-  }
+  Uint8List getChain() => _bip32Node.chainCode;
 
   @override
-  String toString() {
-    return _paymentCodeString ?? "";
-  }
+  String toString() => _paymentCodeString;
 
+  /// generate mask to blind payment code
   static Uint8List getMask(Uint8List sPoint, Uint8List oPoint) {
-    return Util.getSha512HMAC(oPoint, sPoint);
+    final hmac = HMac(SHA512Digest(), 128);
+    hmac.init(KeyParameter(oPoint));
+    return hmac.process(sPoint);
   }
 
-  static Uint8List blind(Uint8List payload, Uint8List mask) {
+  /// blind the payment code for inclusion in OP_RETURN script
+  static Uint8List blind({
+    required Uint8List payload,
+    required Uint8List mask,
+    required bool unBlind,
+  }) {
     Uint8List ret = Uint8List(PAYLOAD_LEN);
     Uint8List pubkey = Uint8List(PUBLIC_KEY_X_LEN);
     Uint8List chain = Uint8List(CHAIN_LEN);
@@ -120,15 +150,41 @@ class PaymentCode {
     Util.copyBytes(mask, 0, buf0, 0, PUBLIC_KEY_X_LEN);
     Util.copyBytes(mask, PUBLIC_KEY_X_LEN, buf1, 0, CHAIN_LEN);
 
-    Util.copyBytes(
-        Util.xor(pubkey, buf0), 0, ret, PUBLIC_KEY_X_OFFSET, PUBLIC_KEY_X_LEN);
-    Util.copyBytes(Util.xor(chain, buf1), 0, ret, CHAIN_OFFSET, CHAIN_LEN);
+    // xor first 32 bytes
+    final x = Util.xor(pubkey, buf0);
+    // xor last 32 bytes
+    final c = Util.xor(chain, buf1);
+
+    if (unBlind) {
+      // If the updated x value is a member of the secp256k1 group, the payment
+      // code is valid. Otherwise the payment code should be ignored.
+      if (!x.toBigInt.isScalarGroupMemberOf(PaymentAddress.curveParams)) {
+        throw Exception(
+            "Updated x value is not a member of the secp256k1 group");
+      }
+    }
+
+    Util.copyBytes(x, 0, ret, PUBLIC_KEY_X_OFFSET, PUBLIC_KEY_X_LEN);
+    Util.copyBytes(c, 0, ret, CHAIN_OFFSET, CHAIN_LEN);
 
     return ret;
   }
 
+  bip32.NetworkType _getBip32NetworkTypeFrom(
+    bitcoindart.NetworkType networkType,
+  ) {
+    return bip32.NetworkType(
+      wif: networkType.wif,
+      bip32: bip32.Bip32Type(
+        public: networkType.bip32.public,
+        private: networkType.bip32.private,
+      ),
+    );
+  }
+
+  // parse pub key and chaincode from payment code
   List<Uint8List> _parse() {
-    Uint8List pcBytes = Util.decodeBase58Check(_paymentCodeString!);
+    Uint8List pcBytes = _paymentCodeString.fromBase58Check;
 
     if (pcBytes[0] != 0x47) {
       throw Exception("invalid payment code version");
@@ -143,7 +199,20 @@ class PaymentCode {
     return [pub, chain];
   }
 
-  Future<String> _makeV1() async {
+  // generate v1 payment code from the chaincode and pub key
+  String _makeV1() {
+    // validate pubkey length
+    if (_bip32Node.publicKey.length != PUBLIC_KEY_X_LEN + PUBLIC_KEY_Y_LEN) {
+      throw Exception(
+          "Invalid public key length: ${_bip32Node.publicKey.length}");
+    }
+
+    // validate chaincode length
+    if (_bip32Node.chainCode.length != CHAIN_LEN) {
+      throw Exception(
+          "Invalid chain code length: ${_bip32Node.chainCode.length}");
+    }
+
     Uint8List payload = Uint8List(PAYLOAD_LEN);
     Uint8List paymentCode = Uint8List(PAYLOAD_LEN + 1);
 
@@ -159,39 +228,22 @@ class PaymentCode {
     payload[1] = 0x00;
 
     // replace sign & x code (33 bytes)
-    Util.copyBytes(
-        _publicKey!, 0, payload, PUBLIC_KEY_Y_OFFSET, _publicKey!.length);
+    Util.copyBytes(_bip32Node.publicKey, 0, payload, PUBLIC_KEY_Y_OFFSET,
+        PUBLIC_KEY_X_LEN + PUBLIC_KEY_Y_LEN);
     // replace chain code (32 bytes)
-    Util.copyBytes(_chainCode!, 0, payload, CHAIN_OFFSET, _chainCode!.length);
+    Util.copyBytes(_bip32Node.chainCode, 0, payload, CHAIN_OFFSET, CHAIN_LEN);
 
     // add version byte
     paymentCode[0] = 0x47;
-    Util.copyBytes(payload, 0, paymentCode, 1, payload.length);
+    Util.copyBytes(payload, 0, paymentCode, 1, PAYLOAD_LEN);
 
-    // append checksum
-    final sha256 = Sha256();
-    final first = await sha256.hash(paymentCode);
-    final second = await sha256.hash(first.bytes);
-    Uint8List checksum = Uint8List(CHECKSUM_LEN);
-    for (int i = 0; i < CHECKSUM_LEN; i++) {
-      checksum[i] = second.bytes[i];
-    }
-    Uint8List paymentCodeChecksum =
-        Uint8List(paymentCode.length + checksum.length);
-    Util.copyBytes(paymentCode, 0, paymentCodeChecksum, 0, paymentCode.length);
-    Util.copyBytes(checksum, 0, paymentCodeChecksum,
-        paymentCodeChecksum.length - CHECKSUM_LEN, checksum.length);
-
-    return Util.encodeBase58(paymentCodeChecksum);
+    return paymentCode.toBase58Check;
   }
 
-//  DeterministicKey createMasterPubKeyFromBytes(Uint8List pub, Uint8List chain)   {
-// return HDKeyDerivation.createMasterPubKeyFromBytes(pub, chain);
-// }
-
+  /// Use at own risk. Not fully tested
   bool isValid() {
     try {
-      Uint8List pcodeBytes = Util.decodeBase58Check(_paymentCodeString!);
+      Uint8List pcodeBytes = _paymentCodeString.fromBase58Check;
 
       if (pcodeBytes[0] != 0x47) {
         throw Exception("invalid version: $_paymentCodeString");

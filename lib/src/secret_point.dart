@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:bip47/src/util.dart';
-import 'package:convert/convert.dart';
 import 'package:pointycastle/ecc/api.dart';
 
 // wrapper for EC key pair/point data
@@ -21,7 +20,8 @@ class SecretPoint {
   Uint8List ecdhSecret() {
     final result =
         (ECDHBasicAgreement()..init(privKey)).calculateAgreement(pubKey);
-    return Uint8List.fromList(hex.decode(Util.bigIntoToHex(result)));
+    // return Uint8List.fromList(hex.decode(result.toHex));
+    return result.toBytes;
   }
 
   /// generate an EC pub key from [data]
@@ -32,7 +32,6 @@ class SecretPoint {
 
   /// generate an EC private key from [data]
   ECPrivateKey _loadPrivateKey(Uint8List data) {
-    final num = Util.bytesToInt(data);
-    return ECPrivateKey(num, _parameters);
+    return ECPrivateKey(data.toBigInt, _parameters);
   }
 }
