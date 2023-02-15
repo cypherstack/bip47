@@ -365,8 +365,9 @@ void main() {
       );
 
       final blindedPaymentCode = PaymentCode.blind(
-        paymentCodeAliceV1.getPayload(),
-        blindingMask,
+        payload: paymentCodeAliceV1.getPayload(),
+        mask: blindingMask,
+        unBlind: false,
       );
       expect(
         blindedPaymentCode.toHex,
@@ -461,6 +462,18 @@ void main() {
 
       a2b.index++;
       expect(a2b.getSendAddress(), address9);
+    });
+
+    test('Payment code v1 un blind', () {
+      final unBlinded = PaymentCode.blind(
+        payload: kBlindedPaymentCodeAlice.fromHex,
+        mask: kBlindingMask.fromHex,
+        unBlind: true,
+      );
+
+      final unBlindedCode = PaymentCode.fromPayload(unBlinded);
+
+      expect(unBlindedCode.toString(), kPaymentCodeAlice);
     });
 
     test('Payment code v1 bob receive addresses', () {

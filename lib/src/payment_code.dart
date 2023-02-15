@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart' as bip32;
+import 'package:bip47/bip47.dart';
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:pointycastle/api.dart';
@@ -131,7 +132,11 @@ class PaymentCode {
   }
 
   /// blind the payment code for inclusion in OP_RETURN script
-  static Uint8List blind(Uint8List payload, Uint8List mask) {
+  static Uint8List blind({
+    required Uint8List payload,
+    required Uint8List mask,
+    required bool unBlind,
+  }) {
     Uint8List ret = Uint8List(PAYLOAD_LEN);
     Uint8List pubkey = Uint8List(PUBLIC_KEY_X_LEN);
     Uint8List chain = Uint8List(CHAIN_LEN);
@@ -145,9 +150,22 @@ class PaymentCode {
     Util.copyBytes(mask, 0, buf0, 0, PUBLIC_KEY_X_LEN);
     Util.copyBytes(mask, PUBLIC_KEY_X_LEN, buf1, 0, CHAIN_LEN);
 
-    Util.copyBytes(
-        Util.xor(pubkey, buf0), 0, ret, PUBLIC_KEY_X_OFFSET, PUBLIC_KEY_X_LEN);
-    Util.copyBytes(Util.xor(chain, buf1), 0, ret, CHAIN_OFFSET, CHAIN_LEN);
+    // xor first 32 bytes
+    final x = Util.xor(pubkey, buf0);
+    // xor last 32 bytes
+    final c = Util.xor(chain, buf1);
+
+    if (unBlind) {
+      // If the updated x value is a member of the secp256k1 group, the payment
+      // code is valid. Otherwise the payment code should be ignored.
+      if (!x.toBigInt.isScalarGroupMemberOf(PaymentAddress.curveParams)) {
+        throw Exception(
+            "Updated x value is not a member of the secp256k1 group");
+      }
+    }
+
+    Util.copyBytes(x, 0, ret, PUBLIC_KEY_X_OFFSET, PUBLIC_KEY_X_LEN);
+    Util.copyBytes(c, 0, ret, CHAIN_OFFSET, CHAIN_LEN);
 
     return ret;
   }
