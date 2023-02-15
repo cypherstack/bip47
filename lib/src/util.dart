@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:dart_bs58/dart_bs58.dart';
 import 'package:dart_bs58check/dart_bs58check.dart';
 import 'package:hex/hex.dart';
+import 'package:pointycastle/ecc/api.dart';
 
 extension Uint8ListExt on Uint8List {
   String get toHex {
@@ -69,6 +70,10 @@ extension BigIntExt on BigInt {
       number = number >> 8;
     }
     return result;
+  }
+
+  bool isScalarGroupMemberOf(ECDomainParameters ecDomainParameters) {
+    return compareTo(BigInt.one) > 0 && compareTo(ecDomainParameters.n) < 0;
   }
 }
 
