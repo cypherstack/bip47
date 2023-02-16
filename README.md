@@ -1,7 +1,7 @@
 # BIP47 version 1
 https://github.com/OpenBitcoinPrivacyProject/bips/blob/master/bip-0047.mediawiki#version-1
 
-Basic frankenstein version 1 BIP47 functionality in Dart
+Simple v1 BIP47 functionality in Dart
 
 Based mainly on the following:
 https://github.com/sparrowwallet/drongo/tree/master/src/main/java/com/sparrowwallet/drongo/bip47

@@ -92,10 +92,6 @@ class PaymentAddress {
   BigInt _addSecp256k1(BigInt b1, BigInt b2) {
     final BigInt value = b1 + b2;
 
-    if (value.bitLength > curveParams.n.bitLength) {
-      return value % curveParams.n;
-    }
-
-    return value;
+    return value % curveParams.n;
   }
 }
