@@ -6,6 +6,7 @@ import 'package:bip47/bip47.dart';
 import 'package:bip47/src/util.dart';
 import 'package:bitcoindart/bitcoindart.dart';
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
+import 'package:pointycastle/ecc/api.dart' as ecc;
 import 'package:test/test.dart';
 
 const String kPath = "m/47'/0'/0'";
@@ -1015,5 +1016,57 @@ void main() {
         A0,
       );
     });
+  });
+
+  group("isScalarGroupMember tests", () {
+    final curveParams = ecc.ECDomainParameters("secp256k1");
+
+    test(
+      "just outside lower bounds",
+      () => expect(
+        BigInt.from(-1).isScalarGroupMemberOf(curveParams),
+        false,
+      ),
+    );
+
+    test(
+      "at lower bound",
+      () => expect(
+        BigInt.zero.isScalarGroupMemberOf(curveParams),
+        true,
+      ),
+    );
+
+    test(
+      "just inside lower bounds",
+      () => expect(
+        BigInt.one.isScalarGroupMemberOf(curveParams),
+        true,
+      ),
+    );
+
+    test(
+      "at upper bound",
+      () => expect(
+        (curveParams.n - BigInt.one).isScalarGroupMemberOf(curveParams),
+        true,
+      ),
+    );
+
+    test(
+      "check against n itself",
+      () => expect(
+        curveParams.n.isScalarGroupMemberOf(curveParams),
+        false,
+      ),
+    );
+
+    test(
+      "just outside upper bounds",
+      () => expect(
+        (curveParams.n + BigInt.one).isScalarGroupMemberOf(curveParams),
+        false,
+      ),
+    );
   });
 }

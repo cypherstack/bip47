@@ -73,7 +73,7 @@ extension BigIntExt on BigInt {
   }
 
   bool isScalarGroupMemberOf(ECDomainParameters ecDomainParameters) {
-    return compareTo(BigInt.one) > 0 && compareTo(ecDomainParameters.n) < 0;
+    return BigInt.zero <= this && this < ecDomainParameters.n;
   }
 }
 
