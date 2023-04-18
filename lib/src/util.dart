@@ -105,4 +105,13 @@ abstract class Util {
           source[i + sourceStartingIndex];
     }
   }
+
+  static bool isBitSet(int byte, int pos) {
+    int test = 0;
+    return (setBit(test, pos) & byte) > 0;
+  }
+
+  static int setBit(int byte, int pos) {
+    return (byte | (1 << pos));
+  }
 }

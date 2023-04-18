@@ -1,6 +1,6 @@
 name: bip47
-description: A starting point for Dart libraries or applications.
-version: 1.0.0
+description: Basic bip47 implementation with Samourai segwit
+version: 2.0.0
 # homepage: https://www.example.com
 
 environment:

@@ -18,6 +18,9 @@ class PaymentCode {
   static const int PAYLOAD_LEN = 80;
   static const int CHECKSUM_LEN = 4;
 
+  static const int SAMOURAI_FEATURE_BYTE = 79;
+  static const int SAMOURAI_SEGWIT_BIT = 0;
+
   late final String _paymentCodeString;
   late final bip32.BIP32 _bip32Node;
   final bitcoindart.NetworkType networkType;
@@ -26,21 +29,21 @@ class PaymentCode {
 
   // initialize payment code given a payment code string
   PaymentCode.fromPaymentCode(
-    this._paymentCodeString, [
-    bitcoindart.NetworkType? networkType,
-  ]) : networkType = networkType ?? bitcoindart.bitcoin {
+    this._paymentCodeString, {
+    required this.networkType,
+  }) {
     final parsed = _parse();
     _bip32Node = bip32.BIP32.fromPublicKey(
       parsed[0],
       parsed[1],
-      _getBip32NetworkTypeFrom(this.networkType),
+      _getBip32NetworkTypeFrom(networkType),
     );
   }
 
   PaymentCode.fromPayload(
-    Uint8List payload, [
-    bitcoindart.NetworkType? networkType,
-  ]) : networkType = networkType ?? bitcoindart.bitcoin {
+    Uint8List payload, {
+    required this.networkType,
+  }) {
     if (payload.length != PAYLOAD_LEN) {
       throw Exception("Invalid payload size: ${payload.length}");
     }
@@ -59,25 +62,36 @@ class PaymentCode {
     _bip32Node = bip32.BIP32.fromPublicKey(
       publicKey,
       chainCode,
-      _getBip32NetworkTypeFrom(this.networkType),
+      _getBip32NetworkTypeFrom(networkType),
     );
 
-    _paymentCodeString = _makeV1();
+    final bool isSamouraiSegwit = Util.isBitSet(
+      payload[SAMOURAI_FEATURE_BYTE],
+      SAMOURAI_SEGWIT_BIT,
+    );
+
+    _paymentCodeString =
+        isSamouraiSegwit ? _makeSamouraiPaymentCode() : _makeV1();
   }
 
   // initialize payment code given a bip32 object
   PaymentCode.fromBip32Node(
-    bip32.BIP32 bip32Node, [
-    bitcoindart.NetworkType? networkType,
-  ]) : networkType = networkType ?? bitcoindart.bitcoin {
-    if (bip32Node.network.wif != this.networkType.wif ||
-        bip32Node.network.bip32.public != this.networkType.bip32.public ||
-        bip32Node.network.bip32.private != this.networkType.bip32.private) {
+    bip32.BIP32 bip32Node, {
+    required this.networkType,
+    required bool shouldSetSegwitBit,
+  }) {
+    if (bip32Node.network.wif != networkType.wif ||
+        bip32Node.network.bip32.public != networkType.bip32.public ||
+        bip32Node.network.bip32.private != networkType.bip32.private) {
       throw Exception(
           "BIP32 network info does not match provided networkType info");
     }
     _bip32Node = bip32Node;
     _paymentCodeString = _makeV1();
+
+    if (shouldSetSegwitBit) {
+      _paymentCodeString = _makeSamouraiPaymentCode();
+    }
   }
 
   // returns the P2PKH address at index 0
@@ -116,6 +130,11 @@ class PaymentCode {
   }
 
   int getType() => getPayload().first;
+
+  bool isSegWitEnabled() => Util.isBitSet(
+        getPayload()[SAMOURAI_FEATURE_BYTE],
+        SAMOURAI_SEGWIT_BIT,
+      );
 
   Uint8List getPubKey() => _bip32Node.publicKey;
 
@@ -237,6 +256,20 @@ class PaymentCode {
     paymentCode[0] = 0x47;
     Util.copyBytes(payload, 0, paymentCode, 1, PAYLOAD_LEN);
 
+    return paymentCode.toBase58Check;
+  }
+
+  String _makeSamouraiPaymentCode() {
+    final payload = getPayload();
+    // set bit0 = 1 in 'Samourai byte' for segwit. Can send/receive P2PKH, P2SH-P2WPKH, P2WPKH (bech32)
+    payload[SAMOURAI_FEATURE_BYTE] =
+        Util.setBit(payload[SAMOURAI_FEATURE_BYTE], SAMOURAI_SEGWIT_BIT);
+    Uint8List paymentCode = Uint8List(PAYLOAD_LEN + 1);
+    // add version byte
+    paymentCode[0] = 0x47;
+    Util.copyBytes(payload, 0, paymentCode, 1, PAYLOAD_LEN);
+
+    // append checksum
     return paymentCode.toBase58Check;
   }
 
