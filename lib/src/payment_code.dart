@@ -21,7 +21,7 @@ class PaymentCode {
   static const int SAMOURAI_FEATURE_BYTE = 79;
   static const int SAMOURAI_SEGWIT_BIT = 0;
 
-  late final String _paymentCodeString;
+  late String _paymentCodeString;
   late final bip32.BIP32 _bip32Node;
   final bitcoindart.NetworkType networkType;
 
