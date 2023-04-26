@@ -161,7 +161,10 @@ void main() {
     test('Payment code v1 fromPayload succeeds', () {
       final bytes = kAlicePayloadHexString.fromHex;
 
-      final paymentCodeAliceV1 = PaymentCode.fromPayload(bytes);
+      final paymentCodeAliceV1 = PaymentCode.fromPayload(
+        bytes,
+        networkType: bitcoin,
+      );
 
       expect(
         paymentCodeAliceV1.toString(),
@@ -174,7 +177,10 @@ void main() {
 
       Exception? exception;
       try {
-        PaymentCode.fromPayload(invalidLengthPayload);
+        PaymentCode.fromPayload(
+          invalidLengthPayload,
+          networkType: bitcoin,
+        );
       } catch (e) {
         exception = e as Exception;
       }
@@ -190,7 +196,10 @@ void main() {
 
       Exception? exception;
       try {
-        PaymentCode.fromPayload(bytes);
+        PaymentCode.fromPayload(
+          bytes,
+          networkType: bitcoin,
+        );
       } catch (e) {
         exception = e as Exception;
       }
@@ -206,7 +215,11 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
 
-      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(bip32NodeAlice);
+      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(
+        bip32NodeAlice,
+        networkType: bitcoin,
+        shouldSetSegwitBit: false,
+      );
 
       expect(
         paymentCodeAliceV1.toString(),
@@ -217,7 +230,11 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedBob))
           .derivePath(kPath);
 
-      final paymentCodeBobV1 = PaymentCode.fromBip32Node(bip32NodeBob);
+      final paymentCodeBobV1 = PaymentCode.fromBip32Node(
+        bip32NodeBob,
+        networkType: bitcoin,
+        shouldSetSegwitBit: false,
+      );
 
       expect(
         paymentCodeBobV1.toString(),
@@ -242,7 +259,11 @@ void main() {
 
       String? exceptionMessage;
       try {
-        PaymentCode.fromBip32Node(bip32NodeAlice);
+        PaymentCode.fromBip32Node(
+          bip32NodeAlice,
+          networkType: bitcoin,
+          shouldSetSegwitBit: false,
+        );
       } catch (e) {
         exceptionMessage = e.toString();
       }
@@ -258,7 +279,11 @@ void main() {
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
 
-      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(bip32NodeAlice);
+      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(
+        bip32NodeAlice,
+        networkType: bitcoin,
+        shouldSetSegwitBit: false,
+      );
 
       expect(
         paymentCodeAliceV1.getPayload().toHex,
@@ -273,7 +298,7 @@ void main() {
 
       final paymentCodeAliceV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
-        null,
+        networkType: bitcoin,
       );
 
       expect(paymentCodeAliceV1.getPubKey(), bip32NodeAlice.publicKey);
@@ -285,7 +310,7 @@ void main() {
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
-        null,
+        networkType: bitcoin,
       );
 
       expect(paymentCodeBobV1.getPubKey(), bip32NodeBob.publicKey);
@@ -295,12 +320,12 @@ void main() {
     test('Payment code v1 isValid', () {
       final paymentCodeAliceV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
-        null,
+        networkType: bitcoin,
       );
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
-        null,
+        networkType: bitcoin,
       );
 
       expect(paymentCodeBobV1.isValid(), true);
@@ -310,7 +335,7 @@ void main() {
     test('Payment code v1 notificationAddress', () {
       final paymentCodeAliceV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
-        null,
+        networkType: bitcoin,
       );
 
       expect(paymentCodeAliceV1.notificationAddressP2PKH(),
@@ -318,7 +343,7 @@ void main() {
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
-        null,
+        networkType: bitcoin,
       );
 
       expect(
@@ -329,13 +354,17 @@ void main() {
       final bip32NodeAlice = bip32.BIP32
           .fromSeed(bip39.mnemonicToSeed(kSeedAlice))
           .derivePath(kPath);
-      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(bip32NodeAlice);
+      final paymentCodeAliceV1 = PaymentCode.fromBip32Node(
+        bip32NodeAlice,
+        networkType: bitcoin,
+        shouldSetSegwitBit: false,
+      );
 
       expect(paymentCodeAliceV1.getPayload().toHex, kAlicePayloadHexString);
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
-        null,
+        networkType: bitcoin,
       );
 
       final aliceECPair = ECPair.fromWIF(kAliceDesignatedPrivateKey);
@@ -427,7 +456,7 @@ void main() {
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
-        null,
+        networkType: bitcoin,
       );
 
       final a2b = PaymentAddress(
@@ -435,34 +464,34 @@ void main() {
         bip32Node: bip32NodeAlice.derive(0),
         index: 0,
       );
-      expect(a2b.getSendAddress(), address0);
+      expect(a2b.getSendAddressP2PKH(), address0);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address1);
+      expect(a2b.getSendAddressP2PKH(), address1);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address2);
+      expect(a2b.getSendAddressP2PKH(), address2);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address3);
+      expect(a2b.getSendAddressP2PKH(), address3);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address4);
+      expect(a2b.getSendAddressP2PKH(), address4);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address5);
+      expect(a2b.getSendAddressP2PKH(), address5);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address6);
+      expect(a2b.getSendAddressP2PKH(), address6);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address7);
+      expect(a2b.getSendAddressP2PKH(), address7);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address8);
+      expect(a2b.getSendAddressP2PKH(), address8);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address9);
+      expect(a2b.getSendAddressP2PKH(), address9);
     });
 
     test('Payment code v1 un blind', () {
@@ -472,7 +501,10 @@ void main() {
         unBlind: true,
       );
 
-      final unBlindedCode = PaymentCode.fromPayload(unBlinded);
+      final unBlindedCode = PaymentCode.fromPayload(
+        unBlinded,
+        networkType: bitcoin,
+      );
 
       expect(unBlindedCode.toString(), kPaymentCodeAlice);
     });
@@ -483,7 +515,7 @@ void main() {
           .derivePath(kPath);
       final pCodeA = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
-        null,
+        networkType: bitcoin,
       );
 
       expect(
@@ -491,7 +523,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(0),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address0,
       );
 
@@ -500,7 +532,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(1),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address1,
       );
 
@@ -509,7 +541,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(2),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address2,
       );
 
@@ -518,7 +550,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(3),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address3,
       );
 
@@ -527,7 +559,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(4),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address4,
       );
 
@@ -536,7 +568,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(5),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address5,
       );
 
@@ -545,7 +577,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(6),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address6,
       );
 
@@ -554,7 +586,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(7),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address7,
       );
 
@@ -563,7 +595,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(8),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address8,
       );
 
@@ -572,7 +604,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(9),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address9,
       );
     });
@@ -583,7 +615,7 @@ void main() {
           .derivePath(kPath);
       final pCodeA = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
-        null,
+        networkType: bitcoin,
       );
 
       expect(
@@ -684,7 +716,7 @@ void main() {
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
-        null,
+        networkType: bitcoin,
       );
 
       final a2b = PaymentAddress(
@@ -759,7 +791,7 @@ void main() {
 
       final paymentCodeBobV1 = PaymentCode.fromPaymentCode(
         kPaymentCodeBob,
-        null,
+        networkType: bitcoin,
       );
 
       final a2b = PaymentAddress(
@@ -873,7 +905,7 @@ void main() {
           .derivePath(kPath);
       final pCodeA = PaymentCode.fromPaymentCode(
         kPaymentCodeAlice,
-        null,
+        networkType: bitcoin,
       );
 
       final pa0 = PaymentAddress(
