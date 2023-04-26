@@ -78,7 +78,7 @@ class PaymentAddress {
     return p2pkh.data.address!;
   }
 
-  bitcoindart.ECPair _getReceiveAddressKeyPair() {
+  bitcoindart.ECPair getReceiveAddressKeyPair() {
     final pair = bitcoindart.ECPair.fromPrivateKey(
       _addSecp256k1(
         bip32Node!.privateKey!.toBigInt,
@@ -90,7 +90,7 @@ class PaymentAddress {
   }
 
   String getReceiveAddressP2PKH() {
-    final pair = _getReceiveAddressKeyPair();
+    final pair = getReceiveAddressKeyPair();
 
     final p2pkh = bitcoindart.P2PKH(
       data: bitcoindart.PaymentData(pubkey: pair.publicKey),
@@ -101,7 +101,7 @@ class PaymentAddress {
   }
 
   String getReceiveAddressP2WPKH() {
-    final pair = _getReceiveAddressKeyPair();
+    final pair = getReceiveAddressKeyPair();
 
     final p2pkh = bitcoindart.P2WPKH(
       data: bitcoindart.PaymentData(pubkey: pair.publicKey),
