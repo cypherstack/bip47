@@ -464,34 +464,34 @@ void main() {
         bip32Node: bip32NodeAlice.derive(0),
         index: 0,
       );
-      expect(a2b.getSendAddress(), address0);
+      expect(a2b.getSendAddressP2PKH(), address0);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address1);
+      expect(a2b.getSendAddressP2PKH(), address1);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address2);
+      expect(a2b.getSendAddressP2PKH(), address2);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address3);
+      expect(a2b.getSendAddressP2PKH(), address3);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address4);
+      expect(a2b.getSendAddressP2PKH(), address4);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address5);
+      expect(a2b.getSendAddressP2PKH(), address5);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address6);
+      expect(a2b.getSendAddressP2PKH(), address6);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address7);
+      expect(a2b.getSendAddressP2PKH(), address7);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address8);
+      expect(a2b.getSendAddressP2PKH(), address8);
 
       a2b.index++;
-      expect(a2b.getSendAddress(), address9);
+      expect(a2b.getSendAddressP2PKH(), address9);
     });
 
     test('Payment code v1 un blind', () {
@@ -523,7 +523,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(0),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address0,
       );
 
@@ -532,7 +532,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(1),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address1,
       );
 
@@ -541,7 +541,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(2),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address2,
       );
 
@@ -550,7 +550,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(3),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address3,
       );
 
@@ -559,7 +559,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(4),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address4,
       );
 
@@ -568,7 +568,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(5),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address5,
       );
 
@@ -577,7 +577,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(6),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address6,
       );
 
@@ -586,7 +586,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(7),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address7,
       );
 
@@ -595,7 +595,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(8),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address8,
       );
 
@@ -604,7 +604,7 @@ void main() {
           paymentCode: pCodeA,
           bip32Node: bobBip32.derive(9),
           index: 0,
-        ).getReceiveAddress(),
+        ).getReceiveAddressP2PKH(),
         address9,
       );
     });

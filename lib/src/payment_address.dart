@@ -56,7 +56,7 @@ class PaymentAddress {
     );
   }
 
-  String getSendAddress() {
+  String getSendAddressP2PKH() {
     final pair = getSendAddressKeyPair();
 
     final p2pkh = bitcoindart.P2PKH(
@@ -78,7 +78,7 @@ class PaymentAddress {
     return pair;
   }
 
-  String getReceiveAddress() {
+  String getReceiveAddressP2PKH() {
     final pair = getReceiveAddressKeyPair();
 
     final p2pkh = bitcoindart.P2PKH(

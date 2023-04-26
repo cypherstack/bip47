@@ -96,12 +96,7 @@ class PaymentCode {
 
   // returns the P2PKH address at index 0
   String notificationAddressP2PKH() {
-    return p2pkhAddressAt(0);
-  }
-
-  // returns the P2PKH address at index
-  String p2pkhAddressAt(int index) {
-    final publicKey = derivePublicKey(index);
+    final publicKey = derivePublicKey(0);
     final p2p = bitcoindart.P2PKH(
       data: bitcoindart.PaymentData(pubkey: publicKey),
       network: networkType,
