@@ -4,8 +4,7 @@ version: 2.0.0
 # homepage: https://www.example.com
 
 environment:
-  sdk: '>=2.18.5 <3.0.0'
-
+  sdk: '>=3.0.0 <4.0.0'
 
 dev_dependencies:
   lints: ^2.0.0
@@ -15,11 +14,11 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 004d6f82dff7389b561e5078b4649adcd2d9c10f
+      ref: 6136230e660fd1f681d18c75d38ca7de4d81187c
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
+      ref: 787814bfea1af30ecf9d90c2c416846def1801f1
   pointycastle: ^3.6.2
   convert: ^3.0.2
   bip32: ^2.0.0
@@ -32,4 +31,4 @@ dependency_overrides:
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 3bef5acc21340f3cc78df0ad1dce5868a3ed68a5
+      ref: 787814bfea1af30ecf9d90c2c416846def1801f1
