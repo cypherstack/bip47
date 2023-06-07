@@ -14,11 +14,11 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 6136230e660fd1f681d18c75d38ca7de4d81187c
+      ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 787814bfea1af30ecf9d90c2c416846def1801f1
+      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
   pointycastle: ^3.6.2
   convert: ^3.0.2
   bip32: ^2.0.0
@@ -26,9 +26,3 @@ dependencies:
   dart_bs58: ^1.0.1
   dart_bs58check: ^3.0.2
   http: ^0.13.5
-
-dependency_overrides:
-  bip39:
-    git:
-      url: https://github.com/cypherstack/stack-bip39.git
-      ref: 787814bfea1af30ecf9d90c2c416846def1801f1
