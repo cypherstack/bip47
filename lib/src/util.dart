@@ -60,13 +60,18 @@ extension BigIntExt on BigInt {
     }
   }
 
-  Uint8List get toBytes {
+  Uint8List toBytes({int? overrideLength}) {
     BigInt number = this;
-    int bytes = (number.bitLength + 7) >> 3;
+    final bytes = overrideLength ?? (number.bitLength + 7) >> 3;
     var b256 = BigInt.from(256);
     var result = Uint8List(bytes);
+
     for (int i = 0; i < bytes; i++) {
-      result[bytes - 1 - i] = number.remainder(b256).toInt();
+      if (number == BigInt.zero) {
+        result[bytes - 1 - i] = 0;
+      } else {
+        result[bytes - 1 - i] = number.remainder(b256).toUnsigned(8).toInt();
+      }
       number = number >> 8;
     }
     return result;
