@@ -83,7 +83,7 @@ class PaymentAddress {
       _addSecp256k1(
         bip32Node!.privateKey!.toBigInt,
         getSecretPoint(),
-      ).toBytes,
+      ).toBytes(overrideLength: 32),
       network: networkType,
     );
     return pair;
