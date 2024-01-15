@@ -20,9 +20,7 @@ class SecretPoint {
   Uint8List ecdhSecret() {
     final result =
         (ECDHBasicAgreement()..init(privKey)).calculateAgreement(pubKey);
-    // return Uint8List.fromList(hex.decode(result.toHex));
-    // TODO: should this toBytes be set at a certain length?
-    return result.toBytes();
+    return result.to32Bytes();
   }
 
   /// generate an EC pub key from [data]

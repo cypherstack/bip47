@@ -60,9 +60,9 @@ extension BigIntExt on BigInt {
     }
   }
 
-  Uint8List toBytes({int? overrideLength}) {
+  Uint8List to32Bytes() {
     BigInt number = this;
-    final bytes = overrideLength ?? (number.bitLength + 7) >> 3;
+    const bytes = 32;
     var b256 = BigInt.from(256);
     var result = Uint8List(bytes);
 
