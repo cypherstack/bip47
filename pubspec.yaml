@@ -1,6 +1,6 @@
 name: bip47
 description: Basic bip47 implementation with Samourai segwit
-version: 2.0.0
+version: 2.1.0
 # homepage: https://www.example.com
 
 environment:
@@ -14,15 +14,21 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
+      ref: 7145be16bb88cffbd53326f7fa4570e414be09e4
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
-  pointycastle: ^3.6.2
+      ref: 20bc8ca0bf0a30c6965977a26c41475a9e862020
+  pointycastle: ^4.0.0
   convert: ^3.0.2
-  bip32: ^2.0.0
+  bip32:
+    git:
+      url: https://github.com/cypherstack/bip32-dart
+      ref: 9a7e9b9bad9872c69dd1383d6b2e6090f85148fc
   hex: ^0.2.0
   dart_bs58: ^1.0.1
-  dart_bs58check: ^3.0.2
-  http: ^0.13.5
+  dart_bs58check:
+    git:
+      url: https://github.com/cypherstack/dart-bs58check
+      ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
+#  http: ^0.13.5
