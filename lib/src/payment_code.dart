@@ -98,13 +98,13 @@ class PaymentCode {
           "BIP32 network info does not match provided networkType info");
     }
     _bip32Node = bip32Node;
+    // Always build v1 first (sets _paymentCodeString), then upgrade if needed.
+    _paymentCodeString = _makeV1();
 
     if (shouldSetTaprootBit) {
       _paymentCodeString = _makeTaprootPaymentCode();
     } else if (shouldSetSegwitBit) {
       _paymentCodeString = _makeSamouraiPaymentCode();
-    } else {
-      _paymentCodeString = _makeV1();
     }
   }
 
