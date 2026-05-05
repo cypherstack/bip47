@@ -20,6 +20,7 @@ class PaymentCode {
 
   static const int SAMOURAI_FEATURE_BYTE = 79;
   static const int SAMOURAI_SEGWIT_BIT = 0;
+  static const int SAMOURAI_TAPROOT_BIT = 1;
 
   late String _paymentCodeString;
   late final bip32.BIP32 _bip32Node;
@@ -65,13 +66,22 @@ class PaymentCode {
       _getBip32NetworkTypeFrom(networkType),
     );
 
-    final bool isSamouraiSegwit = Util.isBitSet(
+    final bool hasTaproot = Util.isBitSet(
+      payload[SAMOURAI_FEATURE_BYTE],
+      SAMOURAI_TAPROOT_BIT,
+    );
+    final bool hasSegwit = Util.isBitSet(
       payload[SAMOURAI_FEATURE_BYTE],
       SAMOURAI_SEGWIT_BIT,
     );
 
-    _paymentCodeString =
-        isSamouraiSegwit ? _makeSamouraiPaymentCode() : _makeV1();
+    if (hasTaproot) {
+      _paymentCodeString = _makeTaprootPaymentCode();
+    } else if (hasSegwit) {
+      _paymentCodeString = _makeSamouraiPaymentCode();
+    } else {
+      _paymentCodeString = _makeV1();
+    }
   }
 
   // initialize payment code given a bip32 object
@@ -79,6 +89,7 @@ class PaymentCode {
     bip32.BIP32 bip32Node, {
     required this.networkType,
     required bool shouldSetSegwitBit,
+    bool shouldSetTaprootBit = false,
   }) {
     if (bip32Node.network.wif != networkType.wif ||
         bip32Node.network.bip32.public != networkType.bip32.public ||
@@ -87,9 +98,12 @@ class PaymentCode {
           "BIP32 network info does not match provided networkType info");
     }
     _bip32Node = bip32Node;
+    // Always build v1 first (sets _paymentCodeString), then upgrade if needed.
     _paymentCodeString = _makeV1();
 
-    if (shouldSetSegwitBit) {
+    if (shouldSetTaprootBit) {
+      _paymentCodeString = _makeTaprootPaymentCode();
+    } else if (shouldSetSegwitBit) {
       _paymentCodeString = _makeSamouraiPaymentCode();
     }
   }
@@ -129,6 +143,11 @@ class PaymentCode {
   bool isSegWitEnabled() => Util.isBitSet(
         getPayload()[SAMOURAI_FEATURE_BYTE],
         SAMOURAI_SEGWIT_BIT,
+      );
+
+  bool isTaprootEnabled() => Util.isBitSet(
+        getPayload()[SAMOURAI_FEATURE_BYTE],
+        SAMOURAI_TAPROOT_BIT,
       );
 
   Uint8List getPubKey() => _bip32Node.publicKey;
@@ -265,6 +284,20 @@ class PaymentCode {
     Util.copyBytes(payload, 0, paymentCode, 1, PAYLOAD_LEN);
 
     // append checksum
+    return paymentCode.toBase58Check;
+  }
+
+  String _makeTaprootPaymentCode() {
+    final payload = getPayload();
+    // set segwit bit (taproot implies segwit)
+    payload[SAMOURAI_FEATURE_BYTE] =
+        Util.setBit(payload[SAMOURAI_FEATURE_BYTE], SAMOURAI_SEGWIT_BIT);
+    // set taproot bit
+    payload[SAMOURAI_FEATURE_BYTE] =
+        Util.setBit(payload[SAMOURAI_FEATURE_BYTE], SAMOURAI_TAPROOT_BIT);
+    Uint8List paymentCode = Uint8List(PAYLOAD_LEN + 1);
+    paymentCode[0] = 0x47;
+    Util.copyBytes(payload, 0, paymentCode, 1, PAYLOAD_LEN);
     return paymentCode.toBase58Check;
   }
 

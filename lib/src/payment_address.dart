@@ -48,6 +48,13 @@ class PaymentAddress {
   Uint8List hashSharedSecret() =>
       SHA256Digest().process(getSharedSecret().ecdhSecret());
 
+  /// Returns the compressed public key bytes for the derived send address.
+  /// Can be used by callers to construct any address type (P2PKH, P2WPKH, P2TR).
+  Uint8List getDerivedSendPublicKey() {
+    final sum = getECPoint() + sG();
+    return sum!.getEncoded(true);
+  }
+
   bitcoindart.ECPair _getSendAddressKeyPair() {
     final sum = getECPoint() + sG();
     return bitcoindart.ECPair.fromPublicKey(
@@ -109,6 +116,13 @@ class PaymentAddress {
     );
 
     return p2pkh.data.address!;
+  }
+
+  /// Returns the compressed public key bytes for the derived receive address.
+  /// Can be used by callers to construct any address type (P2PKH, P2WPKH, P2TR).
+  Uint8List getDerivedReceivePublicKey() {
+    final pair = getReceiveAddressKeyPair();
+    return pair.publicKey;
   }
 
   BigInt _addSecp256k1(BigInt b1, BigInt b2) {
